@@ -23,10 +23,10 @@ export const MusicProvider = ({ children }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
 
-    // ✅ Correct state (only one)
+    // ✅ Playlist state
     const [playlists, setPlaylists] = useState([]);
 
-    // ✅ Load from localStorage (client only)
+    // ✅ Load playlists from localStorage
     useEffect(() => {
         const saved = localStorage.getItem("musicPlayerPlaylists");
         if (saved) {
@@ -38,9 +38,13 @@ export const MusicProvider = ({ children }) => {
         }
     }, []);
 
-    // ✅ Save to localStorage
+    // ✅ Save playlists to localStorage
     useEffect(() => {
-        localStorage.setItem("musicPlayerPlaylists", JSON.stringify(playlists));
+        if (playlists.length > 0) {
+            localStorage.setItem("musicPlayerPlaylists", JSON.stringify(playlists));
+        } else {
+            localStorage.removeItem("musicPlayerPlaylists");
+        }
     }, [playlists]);
 
     const handlePlaying = (song, index) => {
@@ -73,6 +77,7 @@ export const MusicProvider = ({ children }) => {
         return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     };
 
+    // ✅ Create playlist
     const createPlaylist = (name) => {
         const newPlaylist = {
             id: Date.now(),
@@ -82,16 +87,16 @@ export const MusicProvider = ({ children }) => {
         setPlaylists((prev) => [...prev, newPlaylist]);
     };
 
+    // ✅ Delete playlist
     const deletePlaylist = (playlistId) => {
         setPlaylists((prev) => prev.filter((p) => p.id !== playlistId));
     };
 
+    // ✅ Add song to playlist (no duplicates)
     const addSongToPlaylist = (playlistId, song) => {
         setPlaylists((prev) =>
             prev.map((playlist) => {
                 if (playlist.id === playlistId) {
-
-                    // ✅ Prevent duplicates
                     const exists = playlist.songs.some(s => s.id === song.id);
                     if (exists) return playlist;
 
