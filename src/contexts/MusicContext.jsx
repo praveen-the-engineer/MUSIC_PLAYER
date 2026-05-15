@@ -23,13 +23,22 @@ export const MusicProvider = ({ children }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
 
-    // ✅ FIX: Load from localStorage properly
-    const [playlists, setPlaylists] = useState(() => {
-        const saved = localStorage.getItem("musicPlayerPlaylists");
-        return saved ? JSON.parse(saved) : [];
-    });
+    // ✅ Correct state (only one)
+    const [playlists, setPlaylists] = useState([]);
 
-    // ✅ FIX: Always save (even empty array)
+    // ✅ Load from localStorage (client only)
+    useEffect(() => {
+        const saved = localStorage.getItem("musicPlayerPlaylists");
+        if (saved) {
+            try {
+                setPlaylists(JSON.parse(saved));
+            } catch {
+                setPlaylists([]);
+            }
+        }
+    }, []);
+
+    // ✅ Save to localStorage
     useEffect(() => {
         localStorage.setItem("musicPlayerPlaylists", JSON.stringify(playlists));
     }, [playlists]);
@@ -82,9 +91,9 @@ export const MusicProvider = ({ children }) => {
             prev.map((playlist) => {
                 if (playlist.id === playlistId) {
 
-                    // ✅ Prevent duplicate songs
-                    const alreadyExists = playlist.songs.some(s => s.id === song.id);
-                    if (alreadyExists) return playlist;
+                    // ✅ Prevent duplicates
+                    const exists = playlist.songs.some(s => s.id === song.id);
+                    if (exists) return playlist;
 
                     return {
                         ...playlist,
